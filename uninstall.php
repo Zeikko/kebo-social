@@ -36,6 +36,7 @@ if (is_multisite()) {
         // Delete the Transients we registered.
         delete_transient('kebo_twitter_connection_' . $blog->blog_id);
         delete_transient('kebo_twitter_feed_' . $blog->blog_id);
+        
     }
 
     // Go back to Network Site
