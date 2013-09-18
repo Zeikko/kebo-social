@@ -12,7 +12,7 @@ if ( ! function_exists( 'kebo_se_plugin_menu' ) && ! function_exists( 'kebo_se_d
                 __('Kebo Social', 'kebo-se'), // Menu Title
                 'edit_others_posts', // Capability ** Let Editors See It **
                 'kebo-se-dashboard', // Menu Slug
-                'kebo_se_plugin_dashboard', // Render Function
+                'kebo_se_dashboard_page', // Render Function
                 null, // Icon URL
                 '99.00018384' // Menu Position (use decimals to ensure no conflicts
         );
@@ -109,6 +109,11 @@ if ( ! function_exists( 'kebo_se_plugin_menu' ) && ! function_exists( 'kebo_se_d
                             });
 
                             </script>
+                            
+                        <?php
+                        //global $dashboard;
+                        //$dashboard->render_widgets();
+                        ?>
                             
                         <div class="dashboard-box Sortable" data-id="1">
                             
