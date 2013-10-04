@@ -1,0 +1,5 @@
+<?php
+/*
+ * Pinterest Widget
+ * Supports...
+ */
