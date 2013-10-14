@@ -27,6 +27,12 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         public $type;
         
         /**
+         * Tweet Data
+         * @var array
+         */
+        public $tweets = array();
+        
+        /**
          * Transients to Refresh
          * @var array
          */
@@ -101,8 +107,6 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
                 $count = 0;
 
                 foreach ( $accounts as $account ) {
-
-                    //delete_transient( 'kbso_' . $this->service . '_' . $this->type . '_' . $account['account_id'] . get_current_blog_id() );
                     
                     $count++;
 
@@ -121,6 +125,10 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
                             );
                             
                             array_push( $this->refresh, $transient );
+                            
+                            $data['expiry'] = ( time() + 30 );
+
+                            set_transient( 'kbso_' . $this->service . '_' . $this->type . '_' . $account['account_id'] . get_current_blog_id(), json_encode( $data ), 24 * HOUR_IN_SECONDS );
                             
                         }
                         
@@ -145,8 +153,11 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
                  * Sort Combined Data by Timestamp
                  */
                 if ( 1 < $count ) {
-
-                    usort( $combined_data, array( $this, 'tweet_data_sort' ) );
+                    
+                    /*
+                     * Sort Tweets by date created.
+                     */
+                    $combined_data = $this->tweet_data_sort( $combined_data );
                     
                 }
 
@@ -177,7 +188,7 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
             $data = array(
                 'service' => $this->service, // Social Service
                 'type' => $this->type, // Type of data to request
-                'account' => ( isset($account['account_name']) ) ? $account['account_name'] : null, // Service Account Name
+                'account' => ( isset( $account['account_name'] ) ) ? $account['account_name'] : null, // Service Account Name
                 'userid' => $account['account_id'], // Service User ID
                 'token' => $account['token'], // OAuth Token
                 'secret' => $account['secret'], // OAuth Secret
@@ -207,8 +218,9 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
              */
             if ( ! is_wp_error( $request ) ) {
 
-                // Response is in JSON format, so decode it.
-                $data = $this->twitter_linkify( json_decode( $request['body'], true ) );
+                $tweets = json_decode( $request['body'], true );
+                
+                $data = $this->twitter_linkify( $tweets );
 
                 return $data;
                 
@@ -223,78 +235,89 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         /**
          * Sort Tweets by timestamp
          */
-        private function tweet_data_sort($a, $b) {
+        private function tweet_data_sort( $tweets ) {
 
-            return strcmp(strtotime($b['created_at']), strtotime($a['created_at']));
+            // Obtain a list of created dates as timestamps
+            foreach ( $tweets as $key => $row ) {
+                        
+                $date[$key]  = strtotime( $row['created_at'] );
+                        
+            }
+
+            // Sort the data by created date descending
+            // Add $tweets as the last parameter, to sort by the common key
+            array_multisort( $date, SORT_DESC, SORT_NUMERIC, $tweets );
+            
+            return $tweets;
             
         }
 
         /**
          * Converts Tweet text urls, account names and hashtags into HTML links.
          * 
-         * @param type $tweets
-         * @return type
+         * @param array $tweets
+         * @return array $tweets
          */
-        private function twitter_linkify( $tweets ) {
+        public function twitter_linkify( $tweets ) {
 
-            foreach ( $tweets as $tweet ) {
+            foreach ( $tweets as $key => $tweet ) {
 
                 /*
                  * Check if it is the Tweet text or Re-Tweet text which we need to pre-process.
                  */
-                if ( ! empty( $tweet['retweeted_status'] ) ) {
-
+                if ( ! empty( $tweets[$key]['retweeted_status'] ) ) {
+                    
                     /*
                      * Decode HTML Chars like &#039; to '
                      */
-                    $tweet['retweeted_status']['text'] = htmlspecialchars_decode($tweet['retweeted_status']['text'], ENT_QUOTES);
+                    $tweets[$key]['retweeted_status']['text'] = htmlspecialchars_decode( $tweets[$key]['retweeted_status']['text'], ENT_QUOTES );
 
                     /*
                      * Turn Hasntags into HTML Links
                      */
-                    $tweet['retweeted_status']['text'] = preg_replace('/#([A-Za-z0-9\/\.]*)/', '<a href="http://twitter.com/search?q=$1">#$1</a>', $tweet['retweeted_status']['text'] );
+                    $tweets[$key]['retweeted_status']['text'] = preg_replace( '/#([A-Za-z0-9\/\.]*)/', '<a href="http://twitter.com/search?q=$1">#$1</a>', $tweets[$key]['retweeted_status']['text'] );
 
                     /*
                      * Turn Mentions into HTML Links
                      */
-                    $tweet['retweeted_status']['text'] = preg_replace('/@([A-Za-z0-9_\/\.]*)/', '<a href="http://www.twitter.com/$1">@$1</a>', $tweet['retweeted_status']['text'] );
+                    $tweets[$key]['retweeted_status']['text'] = preg_replace( '/@([A-Za-z0-9_\/\.]*)/', '<a href="http://www.twitter.com/$1">@$1</a>', $tweets[$key]['retweeted_status']['text'] );
 
                     /*
                      * Linkify text URLs
                      */
-                    $tweet['retweeted_status']['text'] = make_clickable($tweet['retweeted_status']['text'] );
+                    $tweets[$key]['retweeted_status']['text'] = make_clickable( $tweets[$key]['retweeted_status']['text'] );
 
                     /*
                      * Add target="_blank" to all links
                      */
-                    $tweet['retweeted_status']['text'] = links_add_target($tweet['retweeted_status']['text'], '_blank', array('a') );
+                    $tweets[$key]['retweeted_status']['text'] = links_add_target( $tweets[$key]['retweeted_status']['text'], '_blank', array('a') );
                     
                 } else {
 
                     /*
                      * Decode HTML Chars like &#039; to '
                      */
-                    $tweet['text'] = htmlspecialchars_decode( $tweet['text'], ENT_QUOTES );
+                    $tweets[$key]['text'] = htmlspecialchars_decode( $tweets[$key]['text'], ENT_QUOTES );
 
                     /*
                      * Turn Hasntags into HTML Links
                      */
-                    $tweet['text'] = preg_replace('/#([A-Za-z0-9\/\.]*)/', '<a href="http://twitter.com/search?q=$1">#$1</a>', $tweet['text'] );
+                    $tweets[$key]['text'] = preg_replace( '/#([A-Za-z0-9\/\.]*)/', '<a href="http://twitter.com/search?q=$1">#$1</a>', $tweets[$key]['text'] );
 
                     /*
                      * Turn Mentions into HTML Links
                      */
-                    $tweet['text'] = preg_replace('/@([A-Za-z0-9_\/\.]*)/', '<a href="http://www.twitter.com/$1">@$1</a>', $tweet['text'] );
+                    $tweets[$key]['text'] = preg_replace( '/@([A-Za-z0-9_\/\.]*)/', '<a href="http://www.twitter.com/$1">@$1</a>', $tweets[$key]['text'] );
 
                     /*
                      * Linkify text URLs
                      */
-                    $tweet['text'] = make_clickable( $tweet['text'] );
+                    $tweets[$key]['text'] = make_clickable( $tweets[$key]['text'] );
 
                     /*
                      * Add target="_blank" to all links
                      */
-                    $tweet['text'] = links_add_target( $tweet['text'], '_blank', array('a') );
+                    $tweets[$key]['text'] = links_add_target( $tweets[$key]['text'], '_blank', array('a') );
                     
                 }
                 
