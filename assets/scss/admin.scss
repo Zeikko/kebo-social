@@ -32,7 +32,6 @@ $tumblr: #2C4762;
         max-width: 1200px;
         margin: 0;
         width: 100%;
-        height: 100%;
         overflow: hidden;
 }
 .large-12 {
@@ -64,7 +63,6 @@ $tumblr: #2C4762;
 .column, .columns {
         float: left;
         position: relative;
-        height: 100%;
         padding-bottom: 40px;
 }
 .panel {
@@ -373,7 +371,3 @@ h3.title {
         min-width: 70px;
         margin: 0;
 }
-/*
- * Import Extras
- */
-@import "fonticons";

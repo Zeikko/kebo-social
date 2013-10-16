@@ -6,13 +6,23 @@
 /*
  * Collect returned OAuth2 credentials on callback and save in a transient.
  */
-
 function kebo_se_create_connection() {
 
-    if ( isset($_GET['service'] ) && isset( $_GET['token'] ) && isset( $_GET['account_name'] ) && isset( $_GET['_wpnonce'] ) ) {
+    if ( isset( $_GET['service'] ) && isset( $_GET['token'] ) && isset( $_GET['account_name'] ) && isset( $_GET['_wpnonce'] ) ) {
 
-        if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'kebo-new-connection' ) )
+        if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'kebo-new-connection' ) ) {
+            
+            // Nonce not verified.
+            add_settings_error(
+                    'kebo-se-connections',
+                    esc_attr( 'settings_updated' ),
+                    __( 'No valid nonce was supplied.', 'kebo-se' ),
+                    'error'
+            );
+            
             return;
+            
+        }
         
         if ( false === ( $data = get_option( 'kebo_se_connections' ) ) )
             $data = array();
@@ -20,7 +30,7 @@ function kebo_se_create_connection() {
         // Prepare Connection Info
         $args = array(
             'user_id' => wp_get_current_user()->ID,
-            'service' => $_GET['service'], // Service Name
+            'service' => strtolower( $_GET['service'] ), // Service Name
             'account_name' => $_GET['account_name'], // Account Name
             'account_id' => ( isset($_GET['account_id']) ) ? $_GET['account_id'] : false, // User ID
             'account_link' => ( isset($_GET['account_link']) ) ? $_GET['account_link'] : false,
@@ -56,7 +66,7 @@ function kebo_se_create_connection() {
                     'kebo-se-connections',
                     esc_attr( 'settings_updated' ),
                     __( 'This connection already exists.', 'kebo-se' ),
-                    'updated'
+                    'error'
             );
             
         } else {
@@ -83,16 +93,61 @@ function kebo_se_create_connection() {
 add_action( 'admin_init', 'kebo_se_create_connection' );
 
 /*
+ * Get a Social Connection
+ */
+function kebo_se_get_connection( $id = null, $service = null ) {
+
+    if ( ! false == ( $data = get_option( 'kebo_se_connections' ) ) ) {
+    
+        // Prepare variable to hold connection array key if found.
+        $item = false;
+
+        /*
+         * Loop connections to check for matching connection
+         */
+        foreach ( $data as $key => $conn ) {
+
+            if ( ( $service == strtolower( $conn['service'] ) ) && ( $id == $conn['account_id'] ) ) {
+
+                $item = $key;
+
+            }
+
+        }
+
+        /*
+         * Check if connection was found
+         */
+        if ( is_numeric( $item ) ) {
+
+            // Only return first item in array, as we are only fetching one item.
+            $connection = array_slice( $data, $item, 1 )[0];
+            
+            return $connection;
+
+        } else {
+
+            // Not found.
+            return false;
+
+        }
+    
+    }
+    
+}
+
+/*
  * Delete a Social Connection
  */
 function kebo_se_delete_connection() {
 
     if ( isset( $_GET['action']) && 'delete' == $_GET['action'] && isset( $_GET['service'] ) && isset( $_GET['account_id'] ) ) {
 
-        if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'kebo-delete-connection' ) )
+        if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'kebo-delete-connection' ) ) {
             return;
+        }
         
-        if ( ! false == ( $data = get_option('kebo_se_connections' ) ) ) {
+        if ( ! false == ( $data = get_option( 'kebo_se_connections' ) ) ) {
 
             // Prepare variable to hold connection array key if found.
             $item = false;
@@ -113,11 +168,11 @@ function kebo_se_delete_connection() {
             /*
              * Check if connection was found
              */
-            if (is_numeric($item)) {
+            if ( is_numeric( $item ) ) {
 
-                array_splice($data, $item, 1);
+                array_splice( $data, $item, 1 );
 
-                update_option('kebo_se_connections', $data);
+                update_option( 'kebo_se_connections', $data );
 
                 add_settings_error(
                         'kebose-connections',
@@ -142,7 +197,7 @@ function kebo_se_delete_connection() {
     }
     
 }
-add_action('admin_init', 'kebo_se_delete_connection');
+add_action( 'admin_init', 'kebo_se_delete_connection' );
 
 /*
  * Toggle Share Status of Social Connections
@@ -151,8 +206,9 @@ function kebo_se_share_connection() {
 
     if ( isset( $_GET['action'] ) && 'share' == $_GET['action'] && isset( $_GET['service'] ) && isset( $_GET['account_id'] ) ) {
 
-        if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'kebo-share-connection' ) )
+        if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'kebo-share-connection' ) ) {
             return;
+        }
         
         if ( ! false == ( $data = get_option( 'kebo_se_connections' ) ) ) {
 
@@ -162,11 +218,12 @@ function kebo_se_share_connection() {
             /*
              * Loop connections to check for matching connection
              */
-            foreach ($data as $key => $conn) {
+            foreach ( $data as $key => $conn ) {
 
                 if ( ( $_GET['service'] == strtolower( $conn['service'] ) ) && ( $_GET['account_id'] == $conn['account_id'] ) ) {
 
                     $item = $key;
+                    
                 }
             }
 
@@ -210,7 +267,7 @@ function kebo_se_share_connection() {
     }
     
 }
-add_action('admin_init', 'kebo_se_share_connection');
+add_action( 'admin_init', 'kebo_se_share_connection' );
 
 /*
  * Collect returned OAuth2 credentials on callback and save in a transient.

@@ -11,11 +11,16 @@ $connections = get_option( 'kebo_se_connections' );
 
 $found = false;
 
+/**
+ * Search each connection looking for a twitter account.
+ * We don't need to activate the Widget if there is no Twitter account.
+ */
 foreach ( $connections as $connection ) {
 
-    if ( 'Twitter' == $connection['service'] ) {
+    if ( 'twitter' == strtolower( $connection['service'] ) ) {
 
         $found[] = $connection;
+        
     }
     
 }
@@ -32,24 +37,39 @@ if ( ! empty( $twitter_accounts ) ) {
 
     function kebo_se_twitter_register_widget() {
 
-        register_widget( 'KeboSE_Twitter_Widget' );
+        register_widget( 'Kbso_Twitter_Widget' );
         
     }
 
 }
 
-class KeboSE_Twitter_Widget extends WP_Widget {
+class Kbso_Twitter_Widget extends WP_Widget {
 
-    function KeboSE_Twitter_Widget() {
+    /**
+     * Default Widget Options
+     */
+    public $default_options = array(
+        'account' => null,
+        'title' => null,
+        'type' => 'tweets',
+        'display' => '',
+        'style' => '',
+        'theme' => '',
+        'count' => '',
+        'avatar' => '',
+        'etc' => '',
+    );
+    
+    function Kbso_Twitter_Widget() {
 
         $widget_ops = array(
-            'classname' => 'kebo_se_twitter_widget',
-            'description' => __( 'Displays many types of Twitter data.', 'kebo-se' )
+            'classname' => 'kbso_twitter_widget',
+            'description' => __( 'Displays many types of Twitter data.', 'kbso' )
         );
 
         $this->WP_Widget(
             false,
-            __( 'Kebo Social - Twitter', 'kebo-se' ),
+            __( 'Kebo Social - Twitter', 'kbso' ),
             $widget_ops
         );
         
@@ -60,111 +80,133 @@ class KeboSE_Twitter_Widget extends WP_Widget {
      */
     function widget( $args, $instance ) {
 
-        extract($args, EXTR_SKIP);
+        $time_start = microtime(true);
+        
+        extract( $args, EXTR_SKIP );
+        
+        $instance = wp_parse_args( $instance, $this->default_options );
+        
+        $service = 'twitter';
+        $type = 'tweets';
+        $accounts = array();
+        
+        wp_enqueue_style( 'kebo-twitter-plugin' );
+        
+        add_action( 'wp_footer', 'kbso_twitter_intent_js_print' );
+        
+        if ( is_array( $instance['accounts'] ) ) {
+        
+            foreach ( $instance['accounts'] as $account_id ) {
 
-        // Enqueue Style Sheet
-        //wp_enqueue_style('kebo-twitter-plugin');
+                $account = kebo_se_get_connection( $account_id, $service );
+                
+                $accounts[] = $account;
+                
+            }
+            
+            $data = new Kbso_Api;
+            $data->set_service( $service );
+            $data->set_type( $type );
+            $data->set_accounts( $accounts );
+                        
+            $tweets = $data->get_data();
+            
+            // Output opening Widget HTML
+            echo $before_widget;
+            
+            // If Title is set, output it with Widget title opening and closing HTML
+            if ( isset( $instance['title'] ) && ! empty( $instance['title'] ) ) {
 
-        /*
-         * Get tweets from transient and refresh if its expired.
-         */
-        if (false === ( $tweets = kebo_twitter_get_tweets() ))
-            return;
+                echo $before_title;
+                echo $instance['title'];
+                echo $after_title;
 
-        // Ensure not undefined for updates
-        if (!isset($instance['conversations']))
-            $instance['conversations'] = false;
-
-        // Ensure not undefined for updates
-        if (!isset($instance['media']))
-            $instance['media'] = false;
-
-        // Ensure not undefined for updates
-        if (!isset($instance['display']))
-            $instance['display'] = 'tweets';
-
-        // Output opening Widget HTML
-        echo $before_widget;
-
-        // If Title is set, output it with Widget title opening and closing HTML
-        if (isset($instance['title']) && !empty($instance['title'])) {
-
-            echo $before_title;
-            echo $instance['title'];
-            echo $after_title;
-        }
-
-        /*
-         * Check which Style (Slider/List) has been chosen and use correct view file, default List.
-         */
-        if (2 == $instance['style']) {
-
-            require( KEBO_TWITTER_PLUGIN_PATH . 'views/slider.php' );
+            }
+            
+            $view = new Kbso_View( KBSO_PATH . 'inc/views/twitter' );
+            
+            /*
+             * Set view options and render
+             */
+            $view
+                ->set_view( 'feed' )
+                ->set( 'instance', $instance )
+                ->set( 'count', $instance['count'] )
+                ->set( 'tweets', $tweets )
+                ->render();
+            
+            unset( $view );
+            
+            // Output closing Widget HTML
+            echo $after_widget;
+        
         } else {
-
-            require( KEBO_TWITTER_PLUGIN_PATH . 'views/list.php' );
+            
+            _e('You must select an account to begin showing Tweets.', 'kbso');
+            
         }
+        
+        $time_end = microtime(true);
+        $time = $time_end - $time_start;
 
-        // Output closing Widget HTML
-        echo $after_widget;
+        echo "Rendered Widget in $time seconds\n";
+        
     }
 
     /*
      * Outputs Options Form
      */
 
-    function form($instance) {
-        ?>
+    function form( $instance ) {
 
-        <?php
         // Add defaults.
-        if (!isset($instance['account']))
-            $instance['account'] = null;
-        if (!isset($instance['account']))
-            $instance['account'] = 'null';
-        if (!isset($instance['count']))
-            $instance['count'] = 5;
-        if (!isset($instance['avatar']))
-            $instance['avatar'] = '';
-        if (!isset($instance['style']))
-            $instance['style'] = 1;
-        if (!isset($instance['theme']))
-            $instance['theme'] = 'light';
-        if (!isset($instance['title']))
-            $instance['title'] = '';
-        if (!isset($instance['conversations']))
-            $instance['conversations'] = false;
-        if (!isset($instance['media']))
-            $instance['media'] = false;
-        if (!isset($instance['display']))
-            $instance['display'] = 'tweets';
-        ?>
+        $instance = wp_parse_args( $instance, $this->default_options );
 
-        <?php
         $connections = get_option( 'kebo_se_connections' );
-
+        $user_id = get_current_user_id();
+        $counter = 0;
+        
         foreach ( $connections as $connection ) {
 
-            if ( 'Twitter' == $connection['service'] ) {
+            if ( 'twitter' == strtolower( $connection['service'] ) && ( $user_id == $connection['user_id'] || 1 == $connection['shared'] ) ) {
 
                 $twitter_accounts[] = $connection;
+                $counter++;
+                
             }
 
         }
         
+        /*
+         * Output Relevant Script in the Footer.
+         */
         add_action( 'admin_print_footer_scripts', array( $this, 'print_js' ) );
-
         ?>
+
         <?php if ( ! empty( $twitter_accounts ) ) { ?>
-        <label for="<?php echo $this->get_field_id('account'); ?>">
+        <label for="<?php echo $this->get_field_id('accounts'); ?>">
             <p>
-                <?php _e('Account', 'kebo-se'); ?>:
-                <select style="width: 100%;" id="<?php echo $this->get_field_id('account') ?>" name="<?php echo $this->get_field_name('account'); ?>">
+                <?php _e('Accounts', 'kbso'); ?>:
+                <select style="width: 100%;" size="<?php echo ( 3 < $counter ) ? '4' : $counter ; ?>" id="<?php echo $this->get_field_id('accounts') ?>" name="<?php echo $this->get_field_name('accounts'); ?>[]" multiple="multiple">
                     <?php
                     foreach ( $twitter_accounts as $account ) {
                         
+                        $selected = false;
+                        
+                        if ( is_array( $instance['accounts'] ) ) {
+                            
+                            foreach ( $instance['accounts'] as $account_id ) {
+
+                                if ( $account['account_id'] == $account_id ) {
+                                    $selected = true;
+                                }
+
+                            }
+                            
+                        }
+                        
                         ?>
-                        <option value="<?php echo $account['account_id']; ?>" <?php if ( $account['account_name'] == $instance['account']) { echo 'selected="selected"'; } ?>>@<?php echo $account['account_name']; ?></option>
+                        <option value="<?php echo $account['account_id']; ?>"<?php if ( true == $selected ) { echo ' selected="selected"'; } ?>>@<?php echo $account['account_name']; ?></option>
                         <?php
                         
                     }
@@ -182,9 +224,9 @@ class KeboSE_Twitter_Widget extends WP_Widget {
             <p>
                 <?php _e('Type', 'kebo-se'); ?>:
                 <select style="width: 100%;" id="<?php echo $this->get_field_id('type') ?>" name="<?php echo $this->get_field_name('type'); ?>">
-                    <option value="null" <?php if ( 'null' == $instance['type'] ) { echo 'selected="selected"'; } ?>></option>
-                    <option value="feed" <?php if ( 'feed' == $instance['type'] ) { echo 'selected="selected"'; } ?>><?php _e('Tweet Feed', 'kebo-se'); ?></option>
-                    <option value="follower" <?php if ( 'follower' == $instance['type'] ) { echo 'selected="selected"'; } ?>><?php _e('Latest Followers', 'kebo-se'); ?></option>
+                    <option value="feed"<?php if ( 'feed' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Tweet Feed', 'kebo-se'); ?></option>
+                    <option value="follower"<?php if ( 'follower' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Latest Followers', 'kebo-se'); ?></option>
+                    <option value="friend"<?php if ( 'friend' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Latest Friends', 'kebo-se'); ?></option>
                 </select>
                 <span class="howto">Please choose a type of Widget to see more options.</span>
             </p>
@@ -289,13 +331,15 @@ class KeboSE_Twitter_Widget extends WP_Widget {
      * Validates and Updates Options
      */
 
-    function update($new_instance, $old_instance) {
+    function update( $new_instance, $old_instance ) {
 
         $instance = array();
 
         // Use old figures in case they are not updated.
         $instance = $old_instance;
 
+        $instance['accounts'] = $new_instance['accounts'];
+        
         // Update text inputs and remove HTML.
         $instance['title'] = wp_filter_nohtml_kses($new_instance['title']);
         $instance['style'] = wp_filter_nohtml_kses($new_instance['style']);
