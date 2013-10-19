@@ -13,10 +13,10 @@
         </a>
 
         <a class="kdate" style="float: right;">
-            <?php echo kbso_tweet_date($tweet['created_at']); ?>
+            <?php echo kbso_tweet_date( $tweet['created_at'] ); ?>
         </a>
 
-        <a class="kscreen" href="https://twitter.com/<?php echo $tweet['user']['screen_name']; ?>" style="float: left; opacity: 0.7;">
+        <a class="kscreen" href="https://twitter.com/<?php echo $tweet['user']['screen_name']; ?>" style="float: left; line-height: 1.6em; font-size: 0.8em;">
             @<?php echo ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['user']['screen_name'] : $tweet['user']['screen_name']; ?>
         </a>
 
@@ -34,7 +34,7 @@
 
         </a>
 
-        <?php echo ( ! empty($tweet['retweeted_status']) ) ? $tweet['retweeted_status']['text'] : $tweet['text']; ?>
+        <?php echo ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['text'] : $tweet['text']; ?>
 
     </div>
 
