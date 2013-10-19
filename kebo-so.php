@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name: Kebo Social
- * Plugin URI: http://kebopowered.com/plugins/kebo-social-engagement/
+ * Plugin URI: http://kebopowered.com/plugins/kebo-social/
  * Description: User-friendly and Business focused social integration. Improve your business by leveraging social media.
  * Version: 0.1.0
  * Author: Kebo
@@ -12,7 +12,7 @@
 
 // Block direct access
 if ( ! defined( 'ABSPATH' ) )
-    die( 'Sorry, no direct access' );
+    die( 'Sorry, no direct access.' );
 
 define( 'KBSO_VERSION', '0.1.0' );
 define( 'KBSO_URL', plugin_dir_url(__FILE__) );
