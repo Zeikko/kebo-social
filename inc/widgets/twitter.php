@@ -111,34 +111,59 @@ class Kbso_Twitter_Widget extends WP_Widget {
                         
             $tweets = $data->get_data();
             
-            // Output opening Widget HTML
-            echo $before_widget;
+            /*
+             * Print the 'before_widget' HMTL set by the Theme.
+             */
+            echo apply_filters( 'kbso_twitter_feed_before_widget', $before_widget, $widget_id );
+            
+            $view = new Kbso_View( KBSO_PATH . 'views/twitter' );
             
             // If Title is set, output it with Widget title opening and closing HTML
             if ( isset( $instance['title'] ) && ! empty( $instance['title'] ) ) {
 
-                echo $before_title;
-                echo $instance['title'];
-                echo $after_title;
+                $view
+                    ->set_view( '_feed-title' )
+                    ->set( 'instance', $instance )
+                    ->set( 'widget_id', $widget_id )
+                    ->set( 'before_title', $before_title )
+                    ->set( 'title', $instance['title'] )
+                    ->set( 'after_title', $after_title )
+                    ->render();
 
             }
             
-            $view = new Kbso_View( KBSO_PATH . 'inc/views/twitter' );
-            
-            /*
-             * Set view options and render
-             */
             $view
-                ->set_view( 'feed' )
-                ->set( 'instance', $instance )
-                ->set( 'count', $instance['count'] )
+                ->set_view( '_feed-header' )
                 ->set( 'tweets', $tweets )
+                ->set( 'instance', $instance )
+                ->set( 'widget_id', $widget_id )
                 ->render();
             
-            unset( $view );
+            foreach ( $tweets as $key => $tweet ) {
+                
+                if ( $key == $instance['count'] ) {
+                    break;
+                }
+                
+                $view
+                    ->set_view( '_feed-tweet' )
+                    ->set( 'instance', $instance )
+                    ->set( 'tweet', $tweet )
+                    ->render();
+                
+            }
             
-            // Output closing Widget HTML
-            echo $after_widget;
+            $view
+                ->set_view( '_feed-footer' )
+                ->set( 'tweets', $tweets )
+                ->set( 'instance', $instance )
+                ->set( 'widget_id', $widget_id )
+                ->render();
+            
+            /*
+             * Print the 'after_widget' HMTL set by the Theme.
+             */
+            echo apply_filters( 'kbso_twitter_feed_after_widget', $after_widget, $widget_id );
         
         } else {
             
