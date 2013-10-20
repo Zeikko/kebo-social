@@ -42,6 +42,7 @@ if ( ! empty( $title ) ) {
         $view
             ->set_view( '_feed-tweet' )
             ->set( 'instance', $instance )
+            ->set( 'widget_id', $widget_id )
             ->set( 'tweet', $tweet )
             ->render();
                 

@@ -60,6 +60,11 @@ class Kbso_Twitter_Widget extends WP_Widget {
         'etc' => '',
     );
     
+    /**
+     * Has the Tweet javascript been printed?
+     */
+    static $printed_tweet_js;
+    
     function Kbso_Twitter_Widget() {
 
         $widget_ops = array(
@@ -92,7 +97,8 @@ class Kbso_Twitter_Widget extends WP_Widget {
         
         wp_enqueue_style( 'kebo-twitter-plugin' );
         
-        add_action( 'wp_footer', 'kbso_twitter_intent_js_print' );
+        add_action( 'wp_footer', array( $this, 'print_admin_js' ) );
+        add_action( 'wp_footer', array( $this, 'print_tweet_js' ) );
         
         if ( is_array( $instance['accounts'] ) ) {
         
@@ -139,11 +145,17 @@ class Kbso_Twitter_Widget extends WP_Widget {
         echo "Rendered Widget in $time seconds\n";
         
     }
+    
+    /*
+     * Outputs Options Form
+     */
+    function output_tweets( $instance ) {
+        
+    }
 
     /*
      * Outputs Options Form
      */
-
     function form( $instance ) {
 
         // Add defaults.
@@ -167,7 +179,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         /*
          * Output Relevant Script in the Footer.
          */
-        add_action( 'admin_print_footer_scripts', array( $this, 'print_js' ) );
+        add_action( 'admin_print_footer_scripts', array( $this, 'print_admin_js' ) );
         ?>
 
         <?php if ( ! empty( $twitter_accounts ) ) { ?>
@@ -357,14 +369,51 @@ class Kbso_Twitter_Widget extends WP_Widget {
         return $instance;
     }
     
-    function print_js() {
+    function print_tweet_js() {
+        
+        if ( true === self::$printed_tweet_js ) {
+            return;
+        }
+        
+        self::$printed_tweet_js = true;
         
         // Begin Output Buffering
         ob_start();
         ?>
 
         <script type="text/javascript">
+    
+            //<![CDATA[
+            jQuery( '.ktweet .kfooter a:not(.ktogglemedia)' ).click(function(e) {
+
+                // Prevent Click from Reloading page
+                e.preventDefault();
+
+                var href = jQuery(this).attr('href');
+                window.open( href, 'twitter', 'width=600, height=400, top=0, left=0');
+
+            });
+            //]]>
+            
+        </script>
+
+        <?php
+        // End Output Buffering and Clear Buffer
+        $output = ob_get_contents();
+        ob_end_clean();
         
+        echo $output;
+        
+    }
+    
+    function print_admin_js() {
+        
+        // Begin Output Buffering
+        ob_start();
+        ?>
+
+        <script type="text/javascript">
+            //<![CDATA[
             jQuery('[id^="widget-kebose_twitter_widget-"][id$="-type"]').change( function() {
                 
                 // Get the currently selected value
@@ -373,7 +422,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
                 jQuery(this).parent().parent().parent().children('.feed-container').eq(0).removeClass('feed follower null').addClass( selected );
                 
             });
-            
+            //]]>
         </script>
         
         <style type="text/css">

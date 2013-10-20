@@ -6,6 +6,8 @@
 
 <li class="ktweet" style="overflow: hidden; width: auto; margin-bottom: 10px;">
 
+    <?php do_action( 'kbso_before_twitter_feed_tweet', $tweet, $instance, $widget_id ); ?>
+    
     <div class="kheader" style="overflow: hidden;">
 
         <a class="kname" href="https://twitter.com/<?php echo $tweet['user']['screen_name']; ?>" style="float: left; font-weight: bold; margin-right: 5px;">
@@ -49,5 +51,22 @@
         <a class="kfavorite" title="<?php _e('Favorite', 'kbso'); ?>" href="https://twitter.com/intent/favorite?tweet_id=<?php echo $tweet['id_str']; ?>"></a>
 
     </div>
+    
+    <?php
+    /**
+     * Check for Media attached to the Tweet and display.
+     */
+    if ( ! empty( $tweet['entities']['media'] ) && true == $instance['media'] ) {
+    
+        $view
+            ->set_view( '_feed-media' )
+            ->set( 'instance', $instance )
+            ->set( 'tweet', $tweet )
+            ->render();
+        
+    }
+    ?>
+    
+    <?php do_action( 'kbso_after_twitter_feed_tweet', $tweet, $instance, $widget_id ); ?>
 
 </li>
