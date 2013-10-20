@@ -1,5 +1,4 @@
 <?php
-
 /*
  * Options Page
  */
