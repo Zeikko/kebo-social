@@ -26,6 +26,8 @@
 
     <div class="ktext">
 
+        <?php if ( true == $instance['avatar'] ) { ?>
+        
         <a class="kavatar" href="https://twitter.com/<?php echo $tweet['user']['screen_name']; ?>" style="float: left; margin-top: 6px; margin-right: 10px; margin-bottom: 5px;">
 
             <img src="<?php if ( ! empty( $tweet['retweeted_status'] ) ) {
@@ -35,6 +37,8 @@
             } ?>" />
 
         </a>
+        
+        <?php } ?>
 
         <?php echo ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['text'] : $tweet['text']; ?>
 
@@ -42,7 +46,7 @@
 
     <div class="kfooter">
 
-        <?php if ( ! empty($tweet['entities']['media']) && true == $instance['media']) : ?>
+        <?php if ( ! empty( $tweet['entities']['media'] ) && true == $instance['media'] ) : ?>
             <a class="ktogglemedia kclosed" href="#" data-id="<?php echo $tweet['id_str']; ?>"><span class="kshow" title="<?php _e('View Media', 'kbso'); ?>"><?php _e('View Media', 'kbso'); ?></span><span class="khide" title="<?php _e('Hide Media', 'kbso'); ?>"><?php _e('Hide Media', 'kbso'); ?></span></a>
         <?php endif; ?>
 
