@@ -21,6 +21,12 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         public $service;
         
         /**
+         * Options of output instance (widget/shortcode/etc).
+         * @var string
+         */
+        public $options = array();
+        
+        /**
          * Type of data
          * @var string
          */
@@ -48,7 +54,7 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         }
         
         /**
-         * Get Social Service
+         * Set Social Service
          * 
          * @param type $service
          * @return \Kbso_Api
@@ -62,7 +68,7 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         }
         
         /**
-         * Get Type of Data
+         * Set Type of Data
          * 
          * @param type $type
          * @return \Kbso_Api
@@ -76,7 +82,7 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         }
         
         /**
-         * Get Social Accounts
+         * Set Social Accounts
          * 
          * @param type $accounts
          * @return \Kbso_Api
@@ -84,6 +90,20 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         public function set_accounts( $accounts ) {
             
             $this->accounts = $accounts;
+            
+            return $this;
+            
+        }
+        
+        /**
+         * Set Options of Instance
+         * 
+         * @param type $options
+         * @return \Kbso_Api
+         */
+        public function set_options( $options ) {
+            
+            $this->options = $options;
             
             return $this;
             
@@ -170,6 +190,53 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
             }
             
         }
+        
+        /**
+         * Sort Tweets by timestamp
+         */
+        private function tweet_data_sort( $tweets ) {
+
+            // Obtain a list of created dates as timestamps
+            foreach ( $tweets as $key => $row ) {
+                
+                if ( 'tweets' == $this->options['display'] ) {
+                    
+                    // Skip Re-Tweets
+                    if ( ! empty( $row['retweeted_status'] ) ) {
+                        unset( $tweets[$key] );
+                        continue;
+                    }
+                    if ( ! true == $this->options['conversations'] && ( ! empty( $row['in_reply_to_screen_name'] ) || ! empty( $row['in_reply_to_user_id_str'] ) || ! empty( $row['in_reply_to_status_id_str'] ) ) ) {
+                        unset( $tweets[$key] );
+                        continue;
+                    }
+                    
+                } elseif ( 'retweets' == $this->options['display'] ) {
+                    
+                    // Skip Normal Tweets
+                    if ( empty( $row['retweeted_status'] ) ) {
+                        unset( $tweets[$key] );
+                        continue;
+                    }
+                    
+                }
+                        
+                $date[$key]  = strtotime( $row['created_at'] );
+                        
+            }
+
+            // Sort the data by created date descending
+            // Add $tweets as the last parameter, to sort by the common key
+            array_multisort( $date, SORT_DESC, SORT_NUMERIC, $tweets );
+            
+            /**
+             * Return the correct number of Tweets using Offset
+             */
+            $tweets = array_slice( $tweets, $this->options['offset'], $this->options['count'], false );
+            
+            return $tweets;
+            
+        }
 
         /**
          * Makes Request to Kebo Social API.
@@ -229,26 +296,6 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
                 return $request;
                 
             }
-            
-        }
-
-        /**
-         * Sort Tweets by timestamp
-         */
-        private function tweet_data_sort( $tweets ) {
-
-            // Obtain a list of created dates as timestamps
-            foreach ( $tweets as $key => $row ) {
-                        
-                $date[$key]  = strtotime( $row['created_at'] );
-                        
-            }
-
-            // Sort the data by created date descending
-            // Add $tweets as the last parameter, to sort by the common key
-            array_multisort( $date, SORT_DESC, SORT_NUMERIC, $tweets );
-            
-            return $tweets;
             
         }
 
