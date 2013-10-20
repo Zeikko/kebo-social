@@ -4,7 +4,7 @@
  */
 ?>
 
-<?php do_action( 'kbso_before_twitter_feed', $tweets, $instance, $widget_id ); ?>
+<?php do_action( 'kbso_before_twitter_tweets', $tweets, $instance, $widget_id ); ?>
 
 <?php
 
@@ -14,7 +14,7 @@
 if ( ! empty( $title ) ) {
 
     $view
-        ->set_view( '_feed-title' )
+        ->set_view( '_title' )
         ->set( 'instance', $instance )
         ->set( 'widget_id', $widget_id )
         ->set( 'before_title', $before_title )
@@ -32,15 +32,10 @@ if ( ! empty( $title ) ) {
     /**
      * Loop through each Tweet and render contents.
      */
-    foreach ( $tweets as $key => $tweet ) {
-            
-        // TODO: remove this once number of tweets is processed when fetching data
-        if ( $key == $count ) {
-            break;
-        }
+    foreach ( $tweets as $tweet ) {
 
         $view
-            ->set_view( '_feed-tweet' )
+            ->set_view( '_tweet' )
             ->set( 'instance', $instance )
             ->set( 'widget_id', $widget_id )
             ->set( 'tweet', $tweet )
@@ -52,4 +47,4 @@ if ( ! empty( $title ) ) {
     
 </ul><!-- .ktweets -->
 
-<?php do_action( 'kbso_after_twitter_feed', $tweets, $instance, $widget_id );
+<?php do_action( 'kbso_after_twitter_tweets', $tweets, $instance, $widget_id );

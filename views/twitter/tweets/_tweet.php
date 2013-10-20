@@ -6,7 +6,7 @@
 
 <li class="ktweet" style="overflow: hidden; width: auto; margin-bottom: 10px;">
 
-    <?php do_action( 'kbso_before_twitter_feed_tweet', $tweet, $instance, $widget_id ); ?>
+    <?php do_action( 'kbso_before_twitter_tweets_tweet', $tweet, $instance, $widget_id ); ?>
     
     <div class="kheader" style="overflow: hidden;">
 
@@ -59,7 +59,7 @@
     if ( ! empty( $tweet['entities']['media'] ) && true == $instance['media'] ) {
     
         $view
-            ->set_view( '_feed-media' )
+            ->set_view( '_media' )
             ->set( 'instance', $instance )
             ->set( 'tweet', $tweet )
             ->render();
@@ -67,6 +67,6 @@
     }
     ?>
     
-    <?php do_action( 'kbso_after_twitter_feed_tweet', $tweet, $instance, $widget_id ); ?>
+    <?php do_action( 'kbso_after_twitter_tweets_tweet', $tweet, $instance, $widget_id ); ?>
 
 </li>
