@@ -55,9 +55,9 @@ class Kbso_Twitter_Widget extends WP_Widget {
         'display' => '',
         'style' => '',
         'theme' => '',
-        'count' => '',
+        'count' => 5,
+        'offset' => 0,
         'avatar' => '',
-        'etc' => '',
     );
     
     /**
@@ -65,6 +65,9 @@ class Kbso_Twitter_Widget extends WP_Widget {
      */
     static $printed_tweet_js;
     
+    /**
+     * Setup the Widget
+     */
     function Kbso_Twitter_Widget() {
 
         $widget_ops = array(
@@ -86,8 +89,6 @@ class Kbso_Twitter_Widget extends WP_Widget {
     function widget( $args, $instance ) {
 
         $time_start = microtime(true);
-        
-        extract( $args, EXTR_SKIP );
         
         $instance = wp_parse_args( $instance, $this->default_options );
         
@@ -114,32 +115,34 @@ class Kbso_Twitter_Widget extends WP_Widget {
             $data->set_service( $service );
             $data->set_type( $type );
             $data->set_accounts( $accounts );
-                        
+            $data->set_options( $instance );
+
             $tweets = $data->get_data();
             
-            $view = new Kbso_View( KBSO_PATH . 'views/twitter' );
+            /**
+             * Check which Type of Widget we need to output
+             */
+            if ( 'follwers' == $type ) {
             
-            $view
-                ->set_view( 'feed' )
-                ->set( 'widget_id', $widget_id )
-                ->set( 'tweets', $tweets )
-                ->set( 'instance', $instance )
-                ->set( 'count', $instance['count'] )
-                ->set( 'before_widget', $before_widget )
-                ->set( 'before_title', $before_title )
-                ->set( 'title', $instance['title'] )
-                ->set( 'after_title', $after_title )
-                ->set( 'after_widget', $after_widget )
-                ->set( 'view', $view )
-                ->render();
+                $this->output_followers( $instance, $tweets, $args );
+            
+            } elseif ( 'friends' == $type ) {
+                
+                $this->output_friends( $instance, $tweets, $args );
+                
+            } else {
+                
+                $this->output_tweets( $instance, $tweets, $args );
+                
+            }
         
         } else {
             
-            _e('You must select an account to begin showing Tweets.', 'kbso');
+            _e( 'You must select an account to begin showing Tweets.', 'kbso' );
             
         }
         
-        $time_end = microtime(true);
+        $time_end = microtime( true );
         $time = $time_end - $time_start;
 
         echo "Rendered Widget in $time seconds\n";
@@ -147,9 +150,95 @@ class Kbso_Twitter_Widget extends WP_Widget {
     }
     
     /*
-     * Outputs Options Form
+     * Outputs Twitter Feed
      */
-    function output_tweets( $instance ) {
+    function output_tweets( $instance, $tweets, $args ) {
+            
+        extract( $args, EXTR_SKIP );
+        
+        $view = new Kbso_View(
+            apply_filters(
+                'kbso_twitter_feed_view_dir',
+                KBSO_PATH . 'views/twitter/tweets',
+                $widget_id
+            )
+        );
+            
+        $view
+            ->set_view( 'tweets' )
+            ->set( 'widget_id', $widget_id )
+            ->set( 'tweets', $tweets )
+            ->set( 'instance', $instance )
+            ->set( 'count', $instance['count'] )
+            ->set( 'before_widget', $before_widget )
+            ->set( 'before_title', $before_title )
+            ->set( 'title', $instance['title'] )
+            ->set( 'after_title', $after_title )
+            ->set( 'after_widget', $after_widget )
+            ->set( 'view', $view )
+            ->render();
+        
+    }
+    
+    /*
+     * Outputs Followers List
+     */
+    function output_followers( $instance, $followers, $args ) {
+        
+        extract( $args, EXTR_SKIP );
+        
+        $view = new Kbso_View(
+            apply_filters(
+                'kbso_twitter_feed_view_dir',
+                KBSO_PATH . 'views/twitter/followers',
+                $widget_id
+            )
+        );
+            
+        $view
+            ->set_view( 'followers' )
+            ->set( 'widget_id', $widget_id )
+            ->set( 'tweets', $tweets )
+            ->set( 'instance', $instance )
+            ->set( 'count', $instance['count'] )
+            ->set( 'before_widget', $before_widget )
+            ->set( 'before_title', $before_title )
+            ->set( 'title', $instance['title'] )
+            ->set( 'after_title', $after_title )
+            ->set( 'after_widget', $after_widget )
+            ->set( 'view', $view )
+            ->render();
+        
+    }
+    
+    /*
+     * Outputs Friends List
+     */
+    function output_friends( $instance, $friends, $args ) {
+        
+        extract( $args, EXTR_SKIP );
+        
+        $view = new Kbso_View(
+            apply_filters(
+                'kbso_twitter_feed_view_dir',
+                KBSO_PATH . 'views/twitter/friends',
+                $widget_id
+            )
+        );
+            
+        $view
+            ->set_view( 'friends' )
+            ->set( 'widget_id', $widget_id )
+            ->set( 'tweets', $tweets )
+            ->set( 'instance', $instance )
+            ->set( 'count', $instance['count'] )
+            ->set( 'before_widget', $before_widget )
+            ->set( 'before_title', $before_title )
+            ->set( 'title', $instance['title'] )
+            ->set( 'after_title', $after_title )
+            ->set( 'after_widget', $after_widget )
+            ->set( 'view', $view )
+            ->render();
         
     }
 
