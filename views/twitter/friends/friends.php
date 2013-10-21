@@ -4,7 +4,9 @@
  */
 ?>
 
-<?php do_action( 'kbso_before_twitter_friends', $tweets, $instance, $widget_id ); ?>
+<?php echo $before_widget; ?>
+
+<?php do_action( 'kbso_before_twitter_friends', $friends, $instance, $widget_id ); ?>
 
 <?php
 
@@ -26,7 +28,7 @@ if ( ! empty( $title ) ) {
 
 ?>
 
-<ul class="kebo-tweets dark ktweets">
+<ul class="kfriends">
     
     <?php
     /**
@@ -34,7 +36,12 @@ if ( ! empty( $title ) ) {
      */
     foreach ( $friends as $friend ) {
         
-        echo 'test';
+        $view
+            ->set_view( '_friend' )
+            ->set( 'instance', $instance )
+            ->set( 'widget_id', $widget_id )
+            ->set( 'friend', $friend )
+            ->render();
                 
     }
     
@@ -42,4 +49,6 @@ if ( ! empty( $title ) ) {
     
 </ul><!-- .ktweets -->
 
-<?php do_action( 'kbso_after_twitter_friends', $tweets, $instance, $widget_id );
+<?php do_action( 'kbso_after_twitter_friends', $friends, $instance, $widget_id ); ?>
+
+<?php echo $after_widget; ?>

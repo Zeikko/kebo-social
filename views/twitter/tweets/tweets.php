@@ -4,6 +4,8 @@
  */
 ?>
 
+<?php echo $before_widget; ?>
+
 <?php do_action( 'kbso_before_twitter_tweets', $tweets, $instance, $widget_id ); ?>
 
 <?php
@@ -47,4 +49,6 @@ if ( ! empty( $title ) ) {
     
 </ul><!-- .ktweets -->
 
-<?php do_action( 'kbso_after_twitter_tweets', $tweets, $instance, $widget_id );
+<?php do_action( 'kbso_after_twitter_tweets', $tweets, $instance, $widget_id ); ?>
+
+<?php echo $after_widget; ?>

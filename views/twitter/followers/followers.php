@@ -4,6 +4,8 @@
  */
 ?>
 
+<?php echo $before_widget; ?>
+
 <?php do_action( 'kbso_before_twitter_followers', $followers, $instance, $widget_id ); ?>
 
 <?php
@@ -26,7 +28,7 @@ if ( ! empty( $title ) ) {
 
 ?>
 
-<ul class="kebo-tweets dark ktweets">
+<ul class="kfollowers">
     
     <?php
     /**
@@ -34,12 +36,18 @@ if ( ! empty( $title ) ) {
      */
     foreach ( $followers as $follower ) {
         
-        echo 'test';
+        $view
+            ->set_view( '_follower' )
+            ->set( 'instance', $instance )
+            ->set( 'widget_id', $widget_id )
+            ->set( 'follower', $follower )
+            ->render();
                 
     }
-    
     ?>
     
 </ul><!-- .ktweets -->
 
-<?php do_action( 'kbso_after_twitter_followers', $tweets, $instance, $widget_id );
+<?php do_action( 'kbso_after_twitter_followers', $followers, $instance, $widget_id ); ?>
+
+<?php echo $after_widget; ?>
