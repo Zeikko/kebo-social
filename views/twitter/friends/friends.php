@@ -2,6 +2,10 @@
 /**
  * Template file to show Twitter Feed
  */
+
+/**
+ * TODO: Check if I should re-define the $view instance each time? More confusing/less confusing, etc?
+ */
 ?>
 
 <?php echo $before_widget; ?>
@@ -15,13 +19,11 @@
  */
 if ( ! empty( $title ) ) {
 
+    /**
+     * Already contains: $widget_id, $friends, $instance, $before $before_title, $title, $after_title
+     */
     $view
         ->set_view( '_title' )
-        ->set( 'instance', $instance )
-        ->set( 'widget_id', $widget_id )
-        ->set( 'before_title', $before_title )
-        ->set( 'title', $title )
-        ->set( 'after_title', $after_title )
         ->render();
     
 }
@@ -36,10 +38,11 @@ if ( ! empty( $title ) ) {
      */
     foreach ( $friends as $friend ) {
         
+        /**
+         * Already contains: $widget_id, $friends, $instance
+         */
         $view
             ->set_view( '_friend' )
-            ->set( 'instance', $instance )
-            ->set( 'widget_id', $widget_id )
             ->set( 'friend', $friend )
             ->render();
                 
