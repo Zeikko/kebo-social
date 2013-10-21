@@ -57,7 +57,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         'theme' => '',
         'count' => 5,
         'offset' => 0,
-        'avatar' => '',
+        'avatar' => false,
     );
     
     /**
@@ -93,7 +93,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         $instance = wp_parse_args( $instance, $this->default_options );
         
         $service = 'twitter';
-        $type = 'tweets';
+        $type = $instance['type'];
         $accounts = array();
         
         wp_enqueue_style( 'kebo-twitter-plugin' );
@@ -117,22 +117,22 @@ class Kbso_Twitter_Widget extends WP_Widget {
             $data->set_accounts( $accounts );
             $data->set_options( $instance );
 
-            $tweets = $data->get_data();
+            $data = $data->get_data();
             
             /**
              * Check which Type of Widget we need to output
              */
-            if ( 'follwers' == $type ) {
+            if ( 'followers' == $instance['type'] ) {
             
-                $this->output_followers( $instance, $tweets, $args );
+                $this->output_followers( $instance, $data, $args );
             
-            } elseif ( 'friends' == $type ) {
+            } elseif ( 'friends' == $instance['type'] ) {
                 
-                $this->output_friends( $instance, $tweets, $args );
+                $this->output_friends( $instance, $data, $args );
                 
             } else {
                 
-                $this->output_tweets( $instance, $tweets, $args );
+                $this->output_tweets( $instance, $data, $args );
                 
             }
         
@@ -198,7 +198,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         $view
             ->set_view( 'followers' )
             ->set( 'widget_id', $widget_id )
-            ->set( 'tweets', $tweets )
+            ->set( 'followers', $followers )
             ->set( 'instance', $instance )
             ->set( 'count', $instance['count'] )
             ->set( 'before_widget', $before_widget )
@@ -229,7 +229,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         $view
             ->set_view( 'friends' )
             ->set( 'widget_id', $widget_id )
-            ->set( 'tweets', $tweets )
+            ->set( 'friends', $friends )
             ->set( 'instance', $instance )
             ->set( 'count', $instance['count'] )
             ->set( 'before_widget', $before_widget )
@@ -305,22 +305,22 @@ class Kbso_Twitter_Widget extends WP_Widget {
         <?php } ?>
 
         <label for="<?php echo $this->get_field_id('title'); ?>">
-            <p><?php _e('Title', 'kebo_twitter'); ?>: <input style="width: 100%;" type="text" value="<?php echo $instance['title']; ?>" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>"></p>
+            <p><?php _e('Title', 'kbso'); ?>: <input style="width: 100%;" type="text" value="<?php echo $instance['title']; ?>" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>"></p>
         </label>
 
         <label for="<?php echo $this->get_field_id('type'); ?>">
             <p>
-                <?php _e('Type', 'kebo-se'); ?>:
+                <?php _e('Type', 'kbso'); ?>:
                 <select style="width: 100%;" id="<?php echo $this->get_field_id('type') ?>" name="<?php echo $this->get_field_name('type'); ?>">
-                    <option value="feed"<?php if ( 'feed' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Tweet Feed', 'kebo-se'); ?></option>
-                    <option value="follower"<?php if ( 'follower' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Latest Followers', 'kebo-se'); ?></option>
-                    <option value="friend"<?php if ( 'friend' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Latest Friends', 'kebo-se'); ?></option>
+                    <option value="tweets"<?php if ( 'tweets' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Tweet Feed', 'kbso'); ?></option>
+                    <option value="followers"<?php if ( 'followers' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Latest Followers', 'kbso'); ?></option>
+                    <option value="friends"<?php if ( 'friends' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Latest Friends', 'kbso'); ?></option>
                 </select>
                 <span class="howto">Please choose a type of Widget to see more options.</span>
             </p>
         </label>
 
-        <div class="feed-container<?php echo ( isset( $instance['type'] ) ) ? ' ' . $instance['type'] : ''; ?>">
+        <div class="feed-container<?php echo ( isset( $instance['type'] ) ) ? ' ' . $instance['type'] : ''; ?> feed">
 
         <label for="<?php echo $this->get_field_id('display'); ?>">
             <p>
@@ -387,7 +387,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         </label>
 
         <label for="<?php echo $this->get_field_id('avatar'); ?>">
-            <p><input style="width: 28px;" type="checkbox" value="avatar" name="<?php echo $this->get_field_name('avatar'); ?>" id="<?php echo $this->get_field_id('avatar'); ?>" <?php
+            <p><input style="width: 28px;" type="checkbox" value="true" name="<?php echo $this->get_field_name('avatar'); ?>" id="<?php echo $this->get_field_id('avatar'); ?>" <?php
                 if ('avatar' == $instance['avatar']) {
                     echo 'checked="checked"';
                 }
