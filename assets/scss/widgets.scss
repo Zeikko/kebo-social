@@ -1,0 +1,84 @@
+/*
+ * Kebo Social - Widget Styles
+ */
+
+/*
+ * Import Modules
+ */
+//@import "fonticons";
+//@import "mixins";
+
+/*
+ * Custom Values
+ */
+
+// Social Color Variables
+$facebook: #3b5998;
+$twitter: #00aced;
+$googleplus: #dd4b39;
+$linkedin: #007bb6;
+$pinterest: #cb2027;
+$youtube: #bb0000;
+$instagram: #517fa4;
+$flickr: #ff0084;
+$foursquare: #0072b1;
+$rss: #ffcc00;
+$tumblr: #2C4762;
+
+/*
+ * Twtter Widget - Followers
+ */
+.kfollowers {
+    overflow: hidden;
+    text-align: center; 
+}
+
+.kfollower {
+    display: inline-block;
+    margin: 0 0 6px 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.kfollower a {
+    border-radius: 5px;
+    background: #000;
+    float: left;
+}
+
+.kfollower img {
+    transition: opacity 400ms;
+}
+
+.kfollower:hover img {
+    opacity: 0.7;
+}
+
+/*
+ * Twtter Widget - Friends
+ */
+.kfriends {
+    overflow: hidden;
+    text-align: center;  
+}
+
+.kfriend {
+    display: inline-block;
+    margin: 0 0 6px 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.kfriend a {
+    border-radius: 5px;
+    background: #000;
+    float: left;
+}
+
+.kfriend img {
+    transition: opacity 400ms;
+}
+
+.kfriend:hover img {
+    opacity: 0.7;
+}
