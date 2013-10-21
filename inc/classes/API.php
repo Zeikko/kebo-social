@@ -128,6 +128,8 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
 
                 foreach ( $accounts as $account ) {
                     
+                    //delete_transient( 'kbso_' . $this->service . '_' . $this->type . '_' . $account['account_id'] . get_current_blog_id() );
+                    
                     $count++;
 
                     if ( false !== ( $data = get_transient( 'kbso_' . $this->service . '_' . $this->type . '_' . $account['account_id'] . get_current_blog_id() ) ) ) {
@@ -164,22 +166,29 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
                     
                     unset( $data['expiry'] );
 
-                    // Add Social Data Together
-                    $combined_data = array_merge( $combined_data, $data );
-                    
-                }
+                    if ( 'friends' == $this->type ) {
 
-                /*
-                 * Sort Combined Data by Timestamp
-                 */
-                if ( 1 < $count ) {
+                        // Add Social Data Together
+                        $combined_data = array_merge( $combined_data, $data['users'] );
+
+                    } elseif ( 'followers' == $this->type ) {
+
+                        // Add Social Data Together
+                        $combined_data = array_merge( $combined_data, $data['users'] );
+
+                    } else {
                     
-                    /*
-                     * Sort Tweets by date created.
-                     */
-                    $combined_data = $this->tweet_data_sort( $combined_data );
+                        // Add Social Data Together
+                        $combined_data = array_merge( $combined_data, $data );
+                    
+                    }
                     
                 }
+                
+                /*
+                 * Sort Tweets by date created.
+                 */
+                $combined_data = $this->tweet_data_sort( $combined_data );
 
                 return $combined_data;
                 
@@ -194,47 +203,51 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         /**
          * Sort Tweets by timestamp
          */
-        private function tweet_data_sort( $tweets ) {
+        private function tweet_data_sort( $data ) {
 
-            // Obtain a list of created dates as timestamps
-            foreach ( $tweets as $key => $row ) {
-                
-                if ( 'tweets' == $this->options['display'] ) {
-                    
-                    // Skip Re-Tweets
-                    if ( ! empty( $row['retweeted_status'] ) ) {
-                        unset( $tweets[$key] );
-                        continue;
+            if ( 'tweets' == $this->type ) {
+            
+                // Obtain a list of created dates as timestamps
+                foreach ( $data as $key => $row ) {
+
+                    if ( 'tweets' == $this->options['display'] ) {
+
+                        // Skip Re-Tweets
+                        if ( ! empty( $row['retweeted_status'] ) ) {
+                            unset( $data[$key] );
+                            continue;
+                        }
+                        if ( ! true == $this->options['conversations'] && ( ! empty( $row['in_reply_to_screen_name'] ) || ! empty( $row['in_reply_to_user_id_str'] ) || ! empty( $row['in_reply_to_status_id_str'] ) ) ) {
+                            unset( $data[$key] );
+                            continue;
+                        }
+
+                    } elseif ( 'retweets' == $this->options['display'] ) {
+
+                        // Skip Normal Tweets
+                        if ( empty( $row['retweeted_status'] ) ) {
+                            unset( $data[$key] );
+                            continue;
+                        }
+
                     }
-                    if ( ! true == $this->options['conversations'] && ( ! empty( $row['in_reply_to_screen_name'] ) || ! empty( $row['in_reply_to_user_id_str'] ) || ! empty( $row['in_reply_to_status_id_str'] ) ) ) {
-                        unset( $tweets[$key] );
-                        continue;
-                    }
-                    
-                } elseif ( 'retweets' == $this->options['display'] ) {
-                    
-                    // Skip Normal Tweets
-                    if ( empty( $row['retweeted_status'] ) ) {
-                        unset( $tweets[$key] );
-                        continue;
-                    }
-                    
+
+                    $date[$key]  = strtotime( $row['created_at'] );
+
                 }
-                        
-                $date[$key]  = strtotime( $row['created_at'] );
-                        
-            }
 
-            // Sort the data by created date descending
-            // Add $tweets as the last parameter, to sort by the common key
-            array_multisort( $date, SORT_DESC, SORT_NUMERIC, $tweets );
+                // Sort the data by created date descending
+                // Add $tweets as the last parameter, to sort by the common key
+                array_multisort( $date, SORT_DESC, SORT_NUMERIC, $data );
+            
+            }
             
             /**
              * Return the correct number of Tweets using Offset
              */
-            $tweets = array_slice( $tweets, $this->options['offset'], $this->options['count'], false );
+            $data = array_slice( $data, $this->options['offset'], $this->options['count'], false );
             
-            return $tweets;
+            return $data;
             
         }
 
@@ -279,15 +292,17 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
 
             // Make POST request to Kebo OAuth App.
             $request = wp_remote_post( $request_url, $args );
-
+            
             /*
              * Do Error Handling
              */
             if ( ! is_wp_error( $request ) ) {
 
-                $tweets = json_decode( $request['body'], true );
+                $data = json_decode( $request['body'], true );
                 
-                $data = $this->twitter_linkify( $tweets );
+                if ( 'tweets' == $this->type ) {
+                    $data = $this->twitter_linkify( $data );
+                }
 
                 return $data;
                 
