@@ -118,6 +118,7 @@ if ( ! function_exists( 'kbso_register_files' ) ) :
 
         // Register Styles
         wp_register_style( 'kbso-admin-css', KBSO_URL . 'assets/css/admin.css', array(), KBSO_VERSION, 'all' );
+        wp_register_style( 'kbso-widgets-css', KBSO_URL . 'assets/css/widgets.css', array(), KBSO_VERSION, 'all' );
         
         // Register Scripts
         wp_register_script( 'kbso-admin-js', KBSO_URL . 'assets/js/admin.js', array(), KBSO_VERSION, true );
@@ -137,7 +138,8 @@ endif;
      */
     function kbso_enqueue_frontend() {
 
-        // do stuff
+        // Register Styles
+        
         
     }
     add_action('wp_enqueue_scripts', 'kbso_enqueue_frontend');

@@ -11,7 +11,7 @@ echo apply_filters( 'kbso_twitter_followers_before_title', $before_title, $insta
 /*
  * Output the Title text set on the Widget.
  */
-echo apply_filters( 'kbso_twitter_followers_title', $title, $instance, $widget_id );
+echo esc_html( apply_filters( 'kbso_twitter_followers_title', $title, $instance, $widget_id ) );
 
 /*
  * Print the 'after_title' HMTL set by the Theme.

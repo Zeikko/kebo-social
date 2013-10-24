@@ -10,16 +10,16 @@
     
     <div class="kheader" style="overflow: hidden;">
 
-        <a class="kname" href="https://twitter.com/<?php echo $tweet['user']['screen_name']; ?>" style="float: left; font-weight: bold; margin-right: 5px;">
-            <?php echo ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['user']['name'] : $tweet['user']['name']; ?>
+        <a class="kname" href="<?php echo esc_url( 'https://twitter.com/' . $tweet['user']['screen_name'] ); ?>" style="float: left; font-weight: bold; margin-right: 5px;">
+            <?php echo esc_html( ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['user']['name'] : $tweet['user']['name'] ); ?>
         </a>
 
         <a class="kdate" style="float: right;">
-            <?php echo kbso_tweet_date( $tweet['created_at'] ); ?>
+            <?php echo esc_html( kbso_tweet_date( $tweet['created_at'] ) ); ?>
         </a>
 
         <a class="kscreen" href="https://twitter.com/<?php echo $tweet['user']['screen_name']; ?>" style="float: left; line-height: 1.6em; font-size: 0.8em;">
-            @<?php echo ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['user']['screen_name'] : $tweet['user']['screen_name']; ?>
+            @<?php echo esc_html( ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['user']['screen_name'] : $tweet['user']['screen_name'] ); ?>
         </a>
 
     </div>
@@ -28,19 +28,15 @@
 
         <?php if ( true == $instance['avatar'] ) { ?>
         
-        <a class="kavatar" href="https://twitter.com/<?php echo $tweet['user']['screen_name']; ?>" style="float: left; margin-top: 6px; margin-right: 10px; margin-bottom: 5px;">
+        <a class="kavatar" href="<?php echo esc_url ( 'https://twitter.com/' . $tweet['user']['screen_name'] ); ?>">
 
-            <img src="<?php if ( ! empty( $tweet['retweeted_status'] ) ) {
-                echo ( is_ssl() ) ? $tweet['retweeted_status']['user']['profile_image_url_https'] : $tweet['retweeted_status']['user']['profile_image_url'];
-            } else {
-                echo ( is_ssl() ) ? $tweet['user']['profile_image_url_https'] : $tweet['user']['profile_image_url'];
-            } ?>" />
+            <img src="<?php echo esc_url( $profile_image ); ?>" />
 
         </a>
         
         <?php } ?>
 
-        <?php echo ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['text'] : $tweet['text']; ?>
+        <?php echo wp_kses_post( ( ! empty( $tweet['retweeted_status'] ) ) ? $tweet['retweeted_status']['text'] : $tweet['text'] ); ?>
 
     </div>
 

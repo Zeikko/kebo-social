@@ -8,7 +8,7 @@
  */
 ?>
 
-<?php echo $before_widget; ?>
+<?php echo apply_filters( 'kbso_twitter_tweets_before_widget', $before_widget, $instance, $widget_id ); ?>
 
 <?php do_action( 'kbso_before_twitter_tweets', $tweets, $instance, $widget_id ); ?>
 
@@ -30,7 +30,7 @@ if ( ! empty( $title ) ) {
 
 ?>
 
-<ul class="kebo-tweets dark ktweets">
+<ul id="<?php echo $widget_id; ?>" class="<?php echo implode( ' ', $classes ); ?>">
     
     <?php
     /**
@@ -38,12 +38,19 @@ if ( ! empty( $title ) ) {
      */
     foreach ( $tweets as $tweet ) {
 
+        if ( ! empty( $tweet['retweeted_status'] ) ) {
+            $profile_image = ( is_ssl() ) ? $tweet['retweeted_status']['user']['profile_image_url_https'] : $tweet['retweeted_status']['user']['profile_image_url'];
+        } else {
+            $profile_image = ( is_ssl() ) ? $tweet['user']['profile_image_url_https'] : $tweet['user']['profile_image_url'];
+        }
+        
         /**
          * Already contains: $widget_id, $friends, $instance
          */
         $view
             ->set_view( '_tweet' )
             ->set( 'tweet', $tweet )
+            ->set( 'profile_image', $profile_image )
             ->render();
                 
     }
@@ -54,4 +61,4 @@ if ( ! empty( $title ) ) {
 
 <?php do_action( 'kbso_after_twitter_tweets', $tweets, $instance, $widget_id ); ?>
 
-<?php echo $after_widget; ?>
+<?php echo apply_filters( 'kbso_twitter_tweets_after_widget', $after_widget, $instance, $widget_id ); ?>

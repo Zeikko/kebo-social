@@ -76,45 +76,6 @@ if ( ! function_exists( 'kebo_se_plugin_menu' ) && ! function_exists( 'kebo_se_d
             <p>This is your Kebo SE Dashboard.</p>
 
             <div id="kebo-wrap" class="kebo-dash kebo" data-user_id="<?php echo get_current_user_id(); ?>">
-                
-                <?php
-                        
-                        //set_site_transient( 'kbso_temp', json_encode($data) );
-                        
-                        $data = get_site_transient( 'kbso_temp' );
-                        
-                        $data = json_decode( $data, true );
-                        
-                        $images = array();
-                        /*
-                        foreach ( $data['users'] as $friend ) {
-                            
-                            $file = file_get_contents( $friend['profile_image_url'] );
-                            $details = getimagesize( $friend['profile_image_url'] );
-                            
-                            $image = array(
-                                'file_type' => $details['mime'],
-                                'base64_data' => base64_encode( $file ),
-                            );
-                            
-                            $images[] = $image;
-                            
-                        }
-                         * 
-                         */
-                        
-                        //set_site_transient( 'kbso_temp1', $images );
-                        
-                        $images = get_site_transient( 'kbso_temp1');
-                        
-                        foreach ( $images as $image ) {
-                            
-                            ?>
-                            <img style="border-radius: 4px; height: 30px; width: 30px;" src="data:<?php echo $image['file_type']; ?>;base64,<?php echo $image['base64_data']; ?>" />
-                            <?php
-                            
-                        }
-                        ?>
 
                 <div class="row">
 

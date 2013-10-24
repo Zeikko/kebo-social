@@ -33,6 +33,12 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
         public $type;
         
         /**
+         * Refresh Time
+         * @var string
+         */
+        public $refresh = 5;
+        
+        /**
          * Tweet Data
          * @var array
          */
@@ -42,7 +48,7 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
          * Transients to Refresh
          * @var array
          */
-        public $refresh = array();
+        public $needs_refresh = array();
 
         /**
          * Constructor Method
@@ -146,7 +152,7 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
                                 'blog_id' => get_current_blog_id(),
                             );
                             
-                            array_push( $this->refresh, $transient );
+                            array_push( $this->needs_refresh, $transient );
                             
                             $data['expiry'] = ( time() + 30 );
 
@@ -158,7 +164,7 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
 
                         $data = $this->request( $account );
 
-                        $data['expiry'] = ( time() + ( 1 * MINUTE_IN_SECONDS ) );
+                        $data['expiry'] = ( time() + ( $this->refresh * MINUTE_IN_SECONDS ) );
 
                         set_transient( 'kbso_' . $this->service . '_' . $this->type . '_' . $account['account_id'] . get_current_blog_id(), json_encode( $data ), 24 * HOUR_IN_SECONDS );
                         
@@ -291,7 +297,7 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
             );
 
             // Make POST request to Kebo OAuth App.
-            $request = wp_remote_post( $request_url, $args );
+            $request = wp_remote_post( esc_url_raw( $request_url ), $args );
             
             /*
              * Do Error Handling
@@ -301,7 +307,9 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
                 $data = json_decode( $request['body'], true );
                 
                 if ( 'tweets' == $this->type ) {
+                    
                     $data = $this->twitter_linkify( $data );
+                    
                 }
 
                 return $data;
@@ -395,12 +403,12 @@ if ( ! class_exists( 'Kbso_Api' ) ) {
          */
         public function refresh_cache() {
             
-            if ( ! empty( $this->refresh ) ) {
+            if ( ! empty( $this->needs_refresh ) ) {
             
                 /*
                  * Loop through each transient
                  */
-                foreach ( $this->refresh as $transient ) {
+                foreach ( $this->needs_refresh as $transient ) {
                     
                     /*
                      * Check if we are already updating.

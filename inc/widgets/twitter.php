@@ -1,10 +1,10 @@
 <?php
-/*
+/**
  * Twitter Widget
  * Supports Tweet Feed and Follower List types
  */
 
-/*
+/**
  * Check a Twitter account exists.
  */
 $connections = get_option( 'kebo_se_connections' );
@@ -25,10 +25,12 @@ foreach ( $connections as $connection ) {
     
 }
 
-// We only need Twitter connections now.
+/**
+ * We only need Twitter connections now.
+ */
 $twitter_accounts = $found;
 
-/*
+/**
  * Only register Widget if connection has been made to our Twitter App.
  */
 if ( ! empty( $twitter_accounts ) ) {
@@ -49,21 +51,33 @@ class Kbso_Twitter_Widget extends WP_Widget {
      * Default Widget Options
      */
     public $default_options = array(
-        'account' => null,
+        'accounts' => null,
         'title' => null,
         'type' => 'tweets',
-        'display' => '',
-        'style' => '',
-        'theme' => '',
+        'display' => 'tweets',
+        'style' => 'list',
+        'theme' => 'light',
+        'conversations' => false,
         'count' => 5,
         'offset' => 0,
         'avatar' => false,
     );
     
     /**
-     * Has the Tweet javascript been printed?
+     * Has the Tweet Intent javascript been printed?
      */
-    static $printed_tweet_js;
+    static $printed_intent_js;
+    
+    /**
+     * Has the Tweet Admin javascript been printed?
+     */
+    static $printed_admin_js;
+    
+    /**
+     * Has the Tweet Media javascript been printed?
+     * TODO: Include in Intent JS?
+     */
+    static $printed_media_js;
     
     /**
      * Setup the Widget
@@ -83,7 +97,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         
     }
 
-    /*
+    /**
      * Outputs Content
      */
     function widget( $args, $instance ) {
@@ -97,9 +111,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         $accounts = array();
         
         wp_enqueue_style( 'kebo-twitter-plugin' );
-        
-        add_action( 'wp_footer', array( $this, 'print_admin_js' ) );
-        add_action( 'wp_footer', array( $this, 'print_tweet_js' ) );
+        wp_enqueue_style( 'kbso-widgets-css' );
         
         if ( is_array( $instance['accounts'] ) ) {
         
@@ -139,6 +151,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
         } else {
             
             _e( 'You must select an account to begin showing Tweets.', 'kbso' );
+            return;
             
         }
         
@@ -149,25 +162,62 @@ class Kbso_Twitter_Widget extends WP_Widget {
         
     }
     
-    /*
+    /**
      * Outputs Twitter Feed
      */
     function output_tweets( $instance, $tweets, $args ) {
             
         extract( $args, EXTR_SKIP );
         
+        global $sidebars_widgets;
+        
+        //print_r($sidebars_widgets);
+        
+        /**
+         * We only need the Twitter Intent link js for Tweets.
+         */
+        add_action( 'wp_footer', array( $this, 'print_intent_js' ) );
+        
+        /**
+         * Before rendering, check we have valid data
+         */
+        if ( ! is_array( $tweets ) ) {
+            
+            _e('Sorry, no Tweets found.', 'kbso');
+            return;
+            
+        } elseif ( ! isset( $tweets[0]['created_at'] ) ) {
+            
+            _e('Sorry, the data is not in a valid format.', 'kbso');
+            return;
+            
+        }
+        
+        /**
+         * Setup an instance of the View class.
+         * Allow customization using a filter.
+         */
         $view = new Kbso_View(
             apply_filters(
-                'kbso_twitter_feed_view_dir',
+                'kbso_twitter_widget_view_dir',
                 KBSO_PATH . 'views/twitter/tweets',
                 $widget_id
             )
         );
+        
+        $classes[] = 'kebo-tweets';
+        $classes[] = 'ktweets';
+        $classes[] = $instance['style'];
+        $classes[] = $instance['theme'];
+        if ( is_rtl() ) {
+            $classes[] = 'rtl';
+        }
             
         $view
             ->set_view( 'tweets' )
             ->set( 'widget_id', $widget_id )
             ->set( 'tweets', $tweets )
+            ->set( 'classes', $classes )
             ->set( 'instance', $instance )
             ->set( 'count', $instance['count'] )
             ->set( 'before_widget', $before_widget )
@@ -180,27 +230,33 @@ class Kbso_Twitter_Widget extends WP_Widget {
         
     }
     
-    /*
+    /**
      * Outputs Followers List
      */
     function output_followers( $instance, $followers, $args ) {
         
         extract( $args, EXTR_SKIP );
         
+        /**
+         * Setup an instance of the View class.
+         * Allow customization using a filter.
+         */
         $view = new Kbso_View(
             apply_filters(
-                'kbso_twitter_feed_view_dir',
+                'kbso_twitter_widget_view_dir',
                 KBSO_PATH . 'views/twitter/followers',
                 $widget_id
             )
         );
-            
+        
+        $classes[] = 'kfollowers';
+        
         $view
             ->set_view( 'followers' )
             ->set( 'widget_id', $widget_id )
             ->set( 'followers', $followers )
+            ->set( 'classes', $classes )
             ->set( 'instance', $instance )
-            ->set( 'count', $instance['count'] )
             ->set( 'before_widget', $before_widget )
             ->set( 'before_title', $before_title )
             ->set( 'title', $instance['title'] )
@@ -211,27 +267,33 @@ class Kbso_Twitter_Widget extends WP_Widget {
         
     }
     
-    /*
+    /**
      * Outputs Friends List
      */
     function output_friends( $instance, $friends, $args ) {
         
         extract( $args, EXTR_SKIP );
         
+        /**
+         * Setup an instance of the View class.
+         * Allow customization using a filter.
+         */
         $view = new Kbso_View(
             apply_filters(
-                'kbso_twitter_feed_view_dir',
+                'kbso_twitter_widget_view_dir',
                 KBSO_PATH . 'views/twitter/friends',
                 $widget_id
             )
         );
+        
+        $classes[] = 'kfriends';
             
         $view
             ->set_view( 'friends' )
             ->set( 'widget_id', $widget_id )
             ->set( 'friends', $friends )
+            ->set( 'classes', $classes )
             ->set( 'instance', $instance )
-            ->set( 'count', $instance['count'] )
             ->set( 'before_widget', $before_widget )
             ->set( 'before_title', $before_title )
             ->set( 'title', $instance['title'] )
@@ -250,6 +312,11 @@ class Kbso_Twitter_Widget extends WP_Widget {
         // Add defaults.
         $instance = wp_parse_args( $instance, $this->default_options );
 
+        /*
+         * Output Relevant Script in the Footer.
+         */
+        add_action( 'admin_print_footer_scripts', array( $this, 'print_admin_js' ) );
+        
         $connections = get_option( 'kebo_se_connections' );
         $user_id = get_current_user_id();
         $counter = 0;
@@ -265,10 +332,6 @@ class Kbso_Twitter_Widget extends WP_Widget {
 
         }
         
-        /*
-         * Output Relevant Script in the Footer.
-         */
-        add_action( 'admin_print_footer_scripts', array( $this, 'print_admin_js' ) );
         ?>
 
         <?php if ( ! empty( $twitter_accounts ) ) { ?>
@@ -312,15 +375,15 @@ class Kbso_Twitter_Widget extends WP_Widget {
             <p>
                 <?php _e('Type', 'kbso'); ?>:
                 <select style="width: 100%;" id="<?php echo $this->get_field_id('type') ?>" name="<?php echo $this->get_field_name('type'); ?>">
-                    <option value="tweets"<?php if ( 'tweets' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Tweet Feed', 'kbso'); ?></option>
-                    <option value="followers"<?php if ( 'followers' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Latest Followers', 'kbso'); ?></option>
-                    <option value="friends"<?php if ( 'friends' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Latest Friends', 'kbso'); ?></option>
+                    <option value="tweets"<?php if ( 'tweets' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Tweets', 'kbso'); ?></option>
+                    <option value="followers"<?php if ( 'followers' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Followers', 'kbso'); ?></option>
+                    <option value="friends"<?php if ( 'friends' == $instance['type'] ) { echo ' selected="selected"'; } ?>><?php _e('Friends', 'kbso'); ?></option>
                 </select>
-                <span class="howto">Please choose a type of Widget to see more options.</span>
+                <span class="howto"><?php _e('Please choose a type of Widget to see more options.', 'kbso'); ?></span>
             </p>
         </label>
 
-        <div class="feed-container<?php echo ( isset( $instance['type'] ) ) ? ' ' . $instance['type'] : ''; ?> feed">
+        <div class="feed-container<?php echo ( isset( $instance['type'] ) ) ? ' ' . $instance['type'] : ''; ?>">
 
         <label for="<?php echo $this->get_field_id('display'); ?>">
             <p>
@@ -350,16 +413,8 @@ class Kbso_Twitter_Widget extends WP_Widget {
             <p>
                 <?php _e('Style', 'kebo_twitter'); ?>:
                 <select style="width: 100%;" id="<?php echo $this->get_field_id('style') ?>" name="<?php echo $this->get_field_name('style'); ?>">
-                    <option value="1" <?php
-                    if (1 == $instance['style']) {
-                        echo 'selected="selected"';
-                    }
-                    ?>><?php _e('List', 'kebo_twitter'); ?></option>
-                    <option value="2" <?php
-                    if (2 == $instance['style']) {
-                        echo 'selected="selected"';
-                    }
-                    ?>><?php _e('Slider', 'kebo_twitter'); ?></option>
+                    <option value="list" <?php if ( 'list' == $instance['style'] ) { echo 'selected="selected"'; } ?>><?php _e('List', 'kbso'); ?></option>
+                    <option value="slider" <?php if ( 'slider' == $instance['style'] ) { echo 'selected="selected"'; } ?>><?php _e('Slider', 'kbso'); ?></option>
                 </select>
             </p>
         </label>
@@ -458,13 +513,13 @@ class Kbso_Twitter_Widget extends WP_Widget {
         return $instance;
     }
     
-    function print_tweet_js() {
+    static function print_intent_js() {
         
-        if ( true === self::$printed_tweet_js ) {
+        if ( true === self::$printed_intent_js ) {
             return;
         }
         
-        self::$printed_tweet_js = true;
+        self::$printed_intent_js = true;
         
         // Begin Output Buffering
         ob_start();
@@ -495,7 +550,13 @@ class Kbso_Twitter_Widget extends WP_Widget {
         
     }
     
-    function print_admin_js() {
+    static function print_admin_js() {
+        
+        if ( true === self::$printed_admin_js ) {
+            return;
+        }
+        
+        self::$printed_admin_js = true;
         
         // Begin Output Buffering
         ob_start();
@@ -503,12 +564,12 @@ class Kbso_Twitter_Widget extends WP_Widget {
 
         <script type="text/javascript">
             //<![CDATA[
-            jQuery('[id^="widget-kebose_twitter_widget-"][id$="-type"]').change( function() {
+            jQuery('[id^="widget-kbso_twitter_widget-"][id$="-type"]').change( function() {
                 
                 // Get the currently selected value
-                var selected = jQuery(this).val();
+                var kselected = jQuery(this).val();
                 // Add this value to the Widget contain container
-                jQuery(this).parent().parent().parent().children('.feed-container').eq(0).removeClass('feed follower null').addClass( selected );
+                jQuery(this).parent().parent().parent().children('.feed-container').eq(0).removeClass('tweets followers friends').addClass( kselected );
                 
             });
             //]]>
@@ -519,7 +580,7 @@ class Kbso_Twitter_Widget extends WP_Widget {
             .widget-content .feed-container {
                 display: none;
             }
-            .widget-content .feed-container.feed {
+            .widget-content .feed-container.tweets {
                 display: block;
             }
             
