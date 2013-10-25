@@ -66,7 +66,7 @@ function kbso_plugin_setup() {
     /*
      * Include Visitor Statistic Functions.
      */
-    require_once( KBSO_PATH . 'inc/stats.php' );
+    //require_once( KBSO_PATH . 'inc/stats.php' );
     
     /*
      * Include AJAX Functions.
@@ -86,6 +86,8 @@ function kbso_plugin_setup() {
         include_once( $filename );
         
     }
+    $share_api = new Share_API();
+    $share_api->add_create_site();
     
     /*
      * Include all Widget files
