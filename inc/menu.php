@@ -74,7 +74,7 @@ if ( ! function_exists( 'kebo_se_plugin_menu' ) && ! function_exists( 'kebo_se_d
             <?php settings_errors(); ?>
             
             <p>This is your Kebo SE Dashboard.</p>
-
+            
             <div id="kebo-wrap" class="kebo-dash kebo" data-user_id="<?php echo get_current_user_id(); ?>">
 
                 <div class="row">
@@ -105,6 +105,42 @@ if ( ! function_exists( 'kebo_se_plugin_menu' ) && ! function_exists( 'kebo_se_d
                                         xaxis: {
                                                 mode: "categories",
                                                 tickLength: 0
+                                        }
+                                });
+
+                            });
+
+                            </script>
+                            
+                            <script type="text/javascript">
+
+                            function datesToTimestamps(dates) {
+                                var timestamps = new Array();
+                                jQuery.each(dates, function(index, date) {
+                                    timestamps.push(new Array(new Date(date.timestamp).getTime(), date.value));
+                                });
+                                return timestamps;
+                            }
+                            
+                            jQuery( document ).ready(function() {
+                            
+                                var data = <?php echo Share_API::site(); ?>;
+                                
+                                shares_total = datesToTimestamps(data.shares_total);
+                                console.log(shares_total); 
+                                //var data = [ ["Monday", 10], ["Tuesday", 8], ["Wednesday", 4], ["Thursday", 13], ["Friday", 17], ["Saturday", 9], ["Sunday", 7] ];
+
+                                jQuery.plot("#shares-total", [ shares_total ], {
+                                        series: {
+                                                lines: {
+                                                        show: true,
+                                                        barWidth: 0.7,
+                                                        align: "center"
+                                                }
+                                        },
+                                        xaxis: {
+                                            mode: "time",
+                                            timeformat: "%Y/%m/%d"
                                         }
                                 });
 

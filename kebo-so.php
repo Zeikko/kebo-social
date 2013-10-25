@@ -86,8 +86,7 @@ function kbso_plugin_setup() {
         include_once( $filename );
         
     }
-    $share_api = new Share_API();
-    $share_api->add_create_site();
+    Share_API::add_create_site();
     
     /*
      * Include all Widget files
@@ -128,6 +127,7 @@ if ( ! function_exists( 'kbso_register_files' ) ) :
         wp_register_script( 'kbso-flot-cats-js', KBSO_URL . 'assets/js/vendor/jquery.flot.categories.min.js', array('kbso-flot-js'), KBSO_VERSION, false );
         wp_register_script( 'kbso-flot-resize-js', KBSO_URL . 'assets/js/vendor/jquery.flot.resize.min.js', array('kbso-flot-js'), KBSO_VERSION, false );
         wp_register_script( 'kbso-flot-pie-js', KBSO_URL . 'assets/js/vendor/jquery.flot.pie.min.js', array('kbso-flot-js'), KBSO_VERSION, false );
+        wp_register_script( 'kbso-flot-time-js', KBSO_URL . 'assets/js/vendor/jquery.flot.time.min.js', array('kbso-flot-js'), KBSO_VERSION, false );
         
     }
     add_action('wp_enqueue_scripts', 'kbso_register_files');
@@ -161,6 +161,7 @@ endif;
             wp_enqueue_script( 'kbso-flot-cats-js' );
             wp_enqueue_script( 'kbso-flot-resize-js' );
             wp_enqueue_script( 'kbso-flot-pie-js' );
+            wp_enqueue_script( 'kbso-flot-time-js' );
             wp_enqueue_script( 'jquery-ui-sortable' );
             
         }

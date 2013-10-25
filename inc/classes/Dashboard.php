@@ -403,6 +403,19 @@ $dashboard->add_widget(
 );
 
 /*
+ * Share Count Widget
+ */
+$dashboard->add_widget(
+    __( 'Shares', 'kebo-se' ),
+    'kebo-shares',
+    '<div id="shares-total" class="kebo-graph"></div>',
+    '',
+    array( '' ),
+    array()
+);
+
+
+/*
  * Test Text Widget
  */
 $dashboard->add_widget(
