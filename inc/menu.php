@@ -124,7 +124,7 @@ if ( ! function_exists( 'kebo_se_plugin_menu' ) && ! function_exists( 'kebo_se_d
                             
                             jQuery( document ).ready(function() {
                             
-                                var data = <?php echo Share_API::site(); ?>;
+                                var data = <?php echo Share_API::total(); ?>;
                                 
                                 shares_total = datesToTimestamps(data.shares_total);
                                 console.log(shares_total); 

@@ -51,9 +51,9 @@ if (!class_exists('Share_API')) {
         }
 
         /**
-         * Get share statistics of a url
+         * Get total share statistics of the license
          */
-        public static function site()
+        public static function total()
         {
 //          $request_url = KBSO_API_URL;
             //Temporary API URL
